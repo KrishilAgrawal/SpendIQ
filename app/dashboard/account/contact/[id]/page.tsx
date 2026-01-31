@@ -1,0 +1,394 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { ArrowLeft, Save, Archive, Mail } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { apiRequest } from "@/lib/api";
+
+interface ContactFormData {
+  name: string;
+  email: string;
+  phone: string;
+  street: string;
+  city: string;
+  state: string;
+  country: string;
+  pincode: string;
+  type: "CUSTOMER" | "VENDOR";
+  isPortalUser: boolean;
+  imageUrl: string;
+}
+
+export default function ContactFormPage() {
+  const router = useRouter();
+  const params = useParams();
+  const isEdit = !!params?.id;
+  const contactId = params?.id as string;
+
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [formData, setFormData] = useState<ContactFormData>({
+    name: "",
+    email: "",
+    phone: "",
+    street: "",
+    city: "",
+    state: "",
+    country: "",
+    pincode: "",
+    type: "CUSTOMER",
+    isPortalUser: false,
+    imageUrl: "",
+  });
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof ContactFormData, string>>
+  >({});
+
+  useEffect(() => {
+    if (isEdit) {
+      fetchContact();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contactId]);
+
+  const fetchContact = async () => {
+    try {
+      setLoading(true);
+      const contact = await apiRequest(`/contacts/${contactId}`);
+      setFormData({
+        name: contact.name || "",
+        email: contact.email || "",
+        phone: contact.phone || "",
+        street: contact.street || "",
+        city: contact.city || "",
+        state: contact.state || "",
+        country: contact.country || "",
+        pincode: contact.pincode || "",
+        type: contact.type || "CUSTOMER",
+        isPortalUser: contact.isPortalUser || false,
+        imageUrl: contact.imageUrl || "",
+      });
+    } catch (error) {
+      console.error("Failed to load contact:", error);
+      alert("Failed to load contact");
+      router.push("/dashboard/account/contact");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: Partial<Record<keyof ContactFormData, string>> = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = "Contact name is required";
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Invalid email format";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      alert("Please fix the errors in the form");
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      // Remove empty optional fields to avoid validation errors
+      const payload: any = {
+        name: formData.name,
+        email: formData.email,
+        type: formData.type,
+      };
+
+      // Only add optional fields if they have values
+      if (formData.phone) payload.phone = formData.phone;
+      if (formData.street) payload.street = formData.street;
+      if (formData.city) payload.city = formData.city;
+      if (formData.state) payload.state = formData.state;
+      if (formData.country) payload.country = formData.country;
+      if (formData.pincode) payload.pincode = formData.pincode;
+      if (formData.imageUrl) payload.imageUrl = formData.imageUrl;
+
+      if (isEdit) {
+        await apiRequest(`/contacts/${contactId}`, {
+          method: "PUT",
+          body: payload,
+        });
+        alert("Contact updated successfully");
+      } else {
+        await apiRequest("/contacts", {
+          method: "POST",
+          body: payload,
+        });
+        alert("Contact created successfully");
+      }
+
+      router.push("/dashboard/account/contact");
+    } catch (error) {
+      console.error("Failed to save contact:", error);
+      alert("Failed to save contact");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleArchive = async () => {
+    if (!confirm("Are you sure you want to archive this contact?")) return;
+
+    try {
+      await apiRequest(`/contacts/${contactId}/archive`, {
+        method: "DELETE",
+      });
+      alert("Contact archived successfully");
+      router.push("/dashboard/account/contact");
+    } catch (error) {
+      console.error("Failed to archive contact:", error);
+      alert("Failed to archive contact");
+    }
+  };
+
+  const handleSendPortalInvite = async () => {
+    if (!confirm(`Send portal invitation to ${formData.email}?`)) return;
+
+    try {
+      await apiRequest(`/contacts/${contactId}/portal-access`, {
+        method: "POST",
+      });
+      alert("Portal invitation sent successfully");
+      fetchContact(); // Refresh to show updated portal status
+    } catch (error) {
+      console.error("Failed to send portal invitation:", error);
+      alert("Failed to send portal invitation");
+    }
+  };
+
+  const handleChange = (
+    field: keyof ContactFormData,
+    value: string | boolean,
+  ) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6 max-w-4xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.push("/dashboard/account/contact")}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+              {isEdit ? "Edit Contact" : "New Contact"}
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              {isEdit ? "Update contact information" : "Create a new contact"}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          {isEdit && (
+            <>
+              <Button variant="outline" onClick={handleArchive}>
+                <Archive className="mr-2 h-4 w-4" />
+                Archive
+              </Button>
+              {!formData.isPortalUser && (
+                <Button variant="outline" onClick={handleSendPortalInvite}>
+                  <Mail className="mr-2 h-4 w-4" />
+                  Send Portal Invite
+                </Button>
+              )}
+            </>
+          )}
+          <Button onClick={handleSubmit} disabled={saving}>
+            <Save className="mr-2 h-4 w-4" />
+            {saving ? "Saving..." : "Save"}
+          </Button>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Basic Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Basic Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">
+                  Contact Name <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => handleChange("name", e.target.value)}
+                  placeholder="Enter contact name"
+                  className={errors.name ? "border-destructive" : ""}
+                />
+                {errors.name && (
+                  <p className="text-sm text-destructive">{errors.name}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">
+                  Email <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleChange("email", e.target.value)}
+                  placeholder="contact@example.com"
+                  className={errors.email ? "border-destructive" : ""}
+                />
+                {errors.email && (
+                  <p className="text-sm text-destructive">{errors.email}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone</Label>
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) => handleChange("phone", e.target.value)}
+                  placeholder="+1 (555) 000-0000"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="type">
+                  Contact Type <span className="text-destructive">*</span>
+                </Label>
+                <select
+                  id="type"
+                  value={formData.type}
+                  onChange={(e) =>
+                    handleChange(
+                      "type",
+                      e.target.value as "CUSTOMER" | "VENDOR",
+                    )
+                  }
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="CUSTOMER">Customer</option>
+                  <option value="VENDOR">Vendor</option>
+                </select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Address */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Address</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="street">Street Address</Label>
+              <Input
+                id="street"
+                value={formData.street}
+                onChange={(e) => handleChange("street", e.target.value)}
+                placeholder="123 Main St, Apt 4B"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="city">City</Label>
+                <Input
+                  id="city"
+                  value={formData.city}
+                  onChange={(e) => handleChange("city", e.target.value)}
+                  placeholder="New York"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="state">State/Province</Label>
+                <Input
+                  id="state"
+                  value={formData.state}
+                  onChange={(e) => handleChange("state", e.target.value)}
+                  placeholder="NY"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="country">Country</Label>
+                <Input
+                  id="country"
+                  value={formData.country}
+                  onChange={(e) => handleChange("country", e.target.value)}
+                  placeholder="United States"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="pincode">Postal Code</Label>
+                <Input
+                  id="pincode"
+                  value={formData.pincode}
+                  onChange={(e) => handleChange("pincode", e.target.value)}
+                  placeholder="10001"
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Portal Access */}
+        {isEdit && formData.isPortalUser && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Portal Access</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                ✓ Portal access is enabled for this contact
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </form>
+    </div>
+  );
+}

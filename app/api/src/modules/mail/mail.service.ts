@@ -147,4 +147,50 @@ export class MailService {
       // OTP is already logged to console for development/testing
     }
   }
+
+  async sendPortalInvitation(
+    email: string,
+    name: string,
+    tempPassword: string,
+  ) {
+    console.log(
+      `[MailService] 🔑 Portal Invitation for ${email} - Password: ${tempPassword}`,
+    );
+
+    try {
+      await this.transporter.sendMail({
+        from: this.configService.get<string>("MAIL_FROM"),
+        to: email,
+        subject: "Welcome to SpendIQ Portal! 🎉",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">Portal Access Granted</h2>
+            <p>Hello ${name},</p>
+            <p>You have been granted access to the SpendIQ customer portal. You can now log in to view your account information, invoices, and more.</p>
+            
+            <div style="background-color: #f4f4f4; padding: 20px; border-radius: 5px; margin: 20px 0;">
+              <p style="margin: 5px 0;"><strong>Login URL:</strong> <a href="http://localhost:3000/login">http://localhost:3000/login</a></p>
+              <p style="margin: 5px 0;"><strong>Email:</strong> ${email}</p>
+              <p style="margin: 5px 0;"><strong>Temporary Password:</strong> <code style="background: #fff; padding: 5px 10px; border-radius: 3px; font-size: 16px;">${tempPassword}</code></p>
+            </div>
+            
+            <p style="color: #d9534f;"><strong>⚠️ Important:</strong> Please change your password after your first login for security purposes.</p>
+            
+            <p>If you have any questions or need assistance, please contact our support team.</p>
+            
+            <p>Best regards,<br>The SpendIQ Team</p>
+            <p style="color: #888; font-size: 12px; margin-top: 30px;">This email was sent to ${email} because you were added as a contact in SpendIQ.</p>
+          </div>
+        `,
+      });
+
+      console.log(`[MailService] ✅ Portal invitation sent to ${email}`);
+    } catch (error) {
+      console.error(
+        `[MailService] ⚠️ Failed to send portal invitation to ${email}. Credentials logged above.`,
+        error,
+      );
+      // Don't throw - portal user is already created
+    }
+  }
 }

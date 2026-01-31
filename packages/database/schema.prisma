@@ -98,6 +98,7 @@ enum Role {
   PORTAL_USER
 }
 
+
 model Product {
   id          String   @id @default(uuid())
   name        String
