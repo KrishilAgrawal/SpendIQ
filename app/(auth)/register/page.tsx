@@ -46,16 +46,27 @@ export default function RegisterPage() {
     setError("");
 
     try {
-      await apiRequest("/auth/register", {
+      console.log("[Register] Attempting registration with:", values.email);
+      const response = await apiRequest("/auth/register", {
         method: "POST",
         body: values,
       });
+      console.log("[Register] Registration successful:", response);
 
       // On success, redirect to login
       router.push("/login");
     } catch (e: any) {
-      console.error(e);
-      setError("Registration failed. Email might be already in use.");
+      console.error("[Register] Registration failed:", e);
+      console.error("[Register] Error details:", {
+        message: e?.message,
+        name: e?.name,
+        stack: e?.stack,
+        fullError: e,
+      });
+      // Show the actual error message from the backend
+      const errorMessage =
+        e?.message || "Registration failed. Please try again.";
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

@@ -18,9 +18,11 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto) {
+    console.log("[AuthService] Registering user:", registerDto.email);
     const existingUser = await this.prisma.user.findUnique({
       where: { email: registerDto.email },
     });
+    console.log("[AuthService] Existing user check:", existingUser);
 
     if (existingUser) {
       throw new ConflictException("Email already in use");

@@ -101,16 +101,22 @@ export class DashboardService {
   async getBudgetUtilization() {
     // Get budgets and compute usage
     const budgets = await this.prisma.budget.findMany({
-      include: { lines: { include: { analyticAccount: true } } },
+      include: { lines: true },
     });
 
     // Transform for Donut Chart (Top 5 categories by planned amount)
     return budgets
-      .map((b) => ({
-        name: b.name,
-        value: Number(b.totalAmount),
-        color: "#" + Math.floor(Math.random() * 16777215).toString(16), // Random color for now
-      }))
+      .map((b) => {
+        const total = b.lines.reduce(
+          (sum, line) => sum + Number(line.plannedAmount),
+          0,
+        );
+        return {
+          name: b.name,
+          value: total,
+          color: "#" + Math.floor(Math.random() * 16777215).toString(16), // Random color for now
+        };
+      })
       .slice(0, 5);
   }
 }
