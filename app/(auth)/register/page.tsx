@@ -26,6 +26,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { apiRequest } from "@/lib/api";
+import { setCookie } from "@/lib/auth/cookies";
 import Link from "next/link";
 
 const formSchema = z

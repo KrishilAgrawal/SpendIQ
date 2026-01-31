@@ -11,6 +11,7 @@ import { PortalModule } from "./modules/portal/portal.module";
 import { AccountingModule } from "./modules/accounting/accounting.module";
 import { DashboardModule } from "./modules/dashboard/dashboard.module";
 import { PurchaseOrdersModule } from "./modules/purchase/purchase-orders.module";
+// import { AnalyticsModule } from "./modules/analytics/analytics.module"; // Temporarily disabled - Budget model needs to be updated
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { PurchaseOrdersModule } from "./modules/purchase/purchase-orders.module"
     AccountingModule,
     DashboardModule,
     PurchaseOrdersModule,
+    // AnalyticsModule, // Temporarily disabled - Budget model needs to be updated
   ],
   controllers: [],
   providers: [],
