@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -49,17 +49,32 @@ const menuSections: MenuSection[] = [
 
 export function NavigationMenu() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setActiveMenu(null);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const toggleMenu = (title: string) => {
+    setActiveMenu(activeMenu === title ? null : title);
+  };
 
   return (
-    <nav className="flex items-center gap-1">
+    <nav className="flex items-center gap-1" ref={menuRef}>
       {menuSections.map((section) => (
-        <div
-          key={section.title}
-          className="relative"
-          onMouseEnter={() => setActiveMenu(section.title)}
-          onMouseLeave={() => setActiveMenu(null)}
-        >
+        <div key={section.title} className="relative">
           <button
+            onClick={() => toggleMenu(section.title)}
             className={cn(
               "flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-md",
               "transition-all duration-200",
@@ -79,7 +94,7 @@ export function NavigationMenu() {
           {/* Dropdown Menu */}
           <div
             className={cn(
-              "absolute top-full left-0 mt-1 w-56 rounded-lg border bg-background shadow-lg",
+              "absolute top-full left-0 mt-1 w-56 rounded-lg border bg-background shadow-lg z-50",
               "transition-all duration-200 origin-top",
               activeMenu === section.title
                 ? "opacity-100 scale-100 pointer-events-auto"

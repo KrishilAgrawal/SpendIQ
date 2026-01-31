@@ -599,6 +599,12 @@ enum RuleOperator {
   STARTS_WITH
 }
 
+
+
+
+
+
+
 model AuditLog {
   id          String   @id @default(uuid())
   action      String   // CREATE, UPDATE, DELETE
@@ -614,4 +620,15 @@ model AuditLog {
 
   @@index([entityId])
   @@map("audit_logs")
+}
+
+model OtpVerification {
+  id        String   @id @default(uuid())
+  email     String
+  otp       String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@map("otp_verifications")
 }

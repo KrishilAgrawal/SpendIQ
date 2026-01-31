@@ -112,7 +112,7 @@ export function Sidebar({
         {/* Bottom Actions */}
         <div className="px-4 mt-auto space-y-2">
           <Link
-            href="/help"
+            href="/dashboard/help"
             className={cn(
               "flex items-center gap-3 px-4 py-3 rounded-2xl text-muted-foreground hover:bg-secondary hover:text-foreground transition-all duration-200",
             )}
@@ -120,16 +120,17 @@ export function Sidebar({
             <HelpCircle className="h-5 w-5" />
             {!isCollapsed && <span className="font-medium text-sm">Help</span>}
           </Link>
-          <button
+          <Link
+            href="/dashboard/logout"
             className={cn(
-              "w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200",
+              "flex items-center gap-3 px-4 py-3 rounded-2xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200",
             )}
           >
             <LogOut className="h-5 w-5" />
             {!isCollapsed && (
               <span className="font-medium text-sm">Log out</span>
             )}
-          </button>
+          </Link>
 
           {/* Theme Toggle */}
           <div className="pt-4 border-t border-border mt-2 flex justify-center">

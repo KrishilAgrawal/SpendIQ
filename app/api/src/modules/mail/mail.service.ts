@@ -10,7 +10,7 @@ export class MailService {
     this.transporter = nodemailer.createTransport({
       host: this.configService.get<string>("MAIL_HOST"),
       port: this.configService.get<number>("MAIL_PORT"),
-      secure: false, // true for 465, false for other ports
+      secure: false, // true for 465, false for other ports like 587
       auth: {
         user: this.configService.get<string>("MAIL_USER"),
         pass: this.configService.get<string>("MAIL_PASSWORD"),
@@ -20,7 +20,7 @@ export class MailService {
 
   async sendWelcomeEmail(to: string, name: string) {
     try {
-      const mailOptions = {
+      const info = await this.transporter.sendMail({
         from: this.configService.get<string>("MAIL_FROM"),
         to,
         subject: "Welcome to SpendIQ! 🎉",
@@ -105,15 +105,46 @@ export class MailService {
             </body>
           </html>
         `,
-      };
+      });
 
-      const info = await this.transporter.sendMail(mailOptions);
       console.log("[MailService] Welcome email sent:", info.messageId);
       return { success: true, messageId: info.messageId };
     } catch (error: any) {
       console.error("[MailService] Error sending welcome email:", error);
       // Don't throw error to prevent registration from failing if email fails
       return { success: false, error: error.message };
+    }
+  }
+  async sendOtpEmail(email: string, otp: string) {
+    // Always log OTP to console for development/testing
+    console.log(`[MailService] 🔐 OTP for ${email}: ${otp}`);
+
+    try {
+      await this.transporter.sendMail({
+        from: this.configService.get<string>("MAIL_FROM"),
+        to: email,
+        subject: "Your Verification Code - SpendIQ",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">Welcome to SpendIQ</h2>
+            <p>Please use the following verification code to complete your registration:</p>
+            <div style="background-color: #f4f4f4; padding: 15px; text-align: center; border-radius: 5px; margin: 20px 0;">
+              <span style="font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #0070f3;">${otp}</span>
+            </div>
+            <p>This code is valid for 10 minutes.</p>
+            <p style="color: #888; font-size: 12px; margin-top: 30px;">If you didn't request this code, you can ignore this email.</p>
+          </div>
+        `,
+      });
+
+      console.log(`[MailService] ✅ OTP email successfully sent to ${email}`);
+    } catch (error) {
+      console.error(
+        `[MailService] ⚠️ Failed to send OTP email to ${email}. OTP is logged above for testing.`,
+        error,
+      );
+      // Don't throw - allow registration to proceed even if email fails
+      // OTP is already logged to console for development/testing
     }
   }
 }

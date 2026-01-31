@@ -1,122 +1,126 @@
 import Link from "next/link";
-import { Twitter, Linkedin, Command } from "lucide-react";
+import { Building2 } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="bg-background border-t border-border/40">
+    <footer className="bg-background border-t border-border">
       <div className="container px-4 md:px-6 py-12 md:py-16 mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div className="col-span-1 md:col-span-1 space-y-4">
-            <div className="flex items-center gap-2 font-bold text-xl">
-              <div className="bg-primary text-primary-foreground p-1 rounded-md">
-                <Command className="h-5 w-5" />
+            <div className="flex items-center gap-2 font-bold text-xl text-foreground">
+              <div className="bg-primary text-primary-foreground p-1.5 rounded-md">
+                <Building2 className="h-5 w-5" />
               </div>
               SpendIQ
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              The modern financial operating system for forward-thinking
-              companies.
+              Enterprise budget accounting system
             </p>
-            <div className="flex gap-4">
-              <Link
-                href="#"
-                className="text-muted-foreground hover:text-primary transition-colors"
-              >
-                <Twitter className="h-5 w-5" />
-              </Link>
-              <Link
-                href="#"
-                className="text-muted-foreground hover:text-primary transition-colors"
-              >
-                <Linkedin className="h-5 w-5" />
-              </Link>
-            </div>
           </div>
 
           <div>
-            <h3 className="font-semibold mb-4">Product</h3>
+            <h3 className="font-semibold mb-4 text-foreground">Product</h3>
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li>
-                <Link href="#" className="hover:text-foreground">
+                <Link
+                  href="#features"
+                  className="hover:text-foreground transition-colors"
+                >
                   Features
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-foreground">
+                <Link
+                  href="#"
+                  className="hover:text-foreground transition-colors"
+                >
                   Pricing
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-foreground">
+                <Link
+                  href="/dashboard/help"
+                  className="hover:text-foreground transition-colors"
+                >
                   Documentation
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-foreground">
-                  Changelog
+                <Link
+                  href="#"
+                  className="hover:text-foreground transition-colors"
+                >
+                  Security
                 </Link>
               </li>
             </ul>
           </div>
 
           <div>
-            <h3 className="font-semibold mb-4">Company</h3>
+            <h3 className="font-semibold mb-4 text-foreground">Company</h3>
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li>
-                <Link href="#" className="hover:text-foreground">
-                  About Us
+                <Link
+                  href="#"
+                  className="hover:text-foreground transition-colors"
+                >
+                  About
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-foreground">
-                  Careers
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:text-foreground">
-                  Blog
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:text-foreground">
+                <Link
+                  href="#"
+                  className="hover:text-foreground transition-colors"
+                >
                   Contact
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/login"
+                  className="hover:text-foreground transition-colors"
+                >
+                  Sign In
+                </Link>
+              </li>
             </ul>
           </div>
 
           <div>
-            <h3 className="font-semibold mb-4">Legal</h3>
+            <h3 className="font-semibold mb-4 text-foreground">Legal</h3>
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li>
-                <Link href="#" className="hover:text-foreground">
+                <Link
+                  href="#"
+                  className="hover:text-foreground transition-colors"
+                >
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-foreground">
+                <Link
+                  href="#"
+                  className="hover:text-foreground transition-colors"
+                >
                   Terms of Service
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-foreground">
-                  Security
+                <Link
+                  href="#"
+                  className="hover:text-foreground transition-colors"
+                >
+                  Compliance
                 </Link>
               </li>
             </ul>
           </div>
         </div>
 
-        <div className="pt-8 border-t border-border/40 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} SpendIQ Inc. All rights reserved.
+        <div className="pt-8 border-t border-border">
+          <p className="text-sm text-muted-foreground text-center">
+            &copy; {new Date().getFullYear()} SpendIQ. All rights reserved.
           </p>
-          <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <span className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              All Systems Operational
-            </span>
-          </div>
         </div>
       </div>
     </footer>

@@ -14,8 +14,8 @@ import { CreateContactDto } from "./dto/create-contact.dto";
 import { UpdateContactDto } from "./dto/update-contact.dto";
 import { ContactQueryDto } from "./dto/contact-query.dto";
 import { JwtAuthGuard } from "../../common/auth/jwt-auth.guard";
-import { RolesGuard } from "../../common/auth/roles.guard";
-import { Roles } from "../../common/auth/roles.decorator";
+import { RolesGuard } from "../../common/guards/roles.guard";
+import { Roles } from "../../common/decorators/roles.decorator";
 import { Role } from "@prisma/client";
 
 @Controller("contacts")

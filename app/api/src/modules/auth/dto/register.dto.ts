@@ -25,4 +25,7 @@ export class RegisterDto {
 
   @IsNotEmpty()
   name: string;
+
+  @IsString()
+  otp?: string;
 }

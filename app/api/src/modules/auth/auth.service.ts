@@ -19,8 +19,55 @@ export class AuthService {
     private mailService: MailService,
   ) {}
 
+  async sendOtp(email: string) {
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Delete existing OTPs for this email to avoid clutter
+    await (this.prisma as any).otpVerification.deleteMany({ where: { email } });
+
+    await (this.prisma as any).otpVerification.create({
+      data: {
+        email,
+        otp,
+        expiresAt,
+      },
+    });
+
+    await this.mailService.sendOtpEmail(email, otp);
+
+    // In development mode, return the OTP in the response for easier testing
+    const isDevelopment = process.env.NODE_ENV === "development";
+    if (isDevelopment) {
+      return {
+        message: "OTP sent successfully",
+        otp, // Include OTP in response for development
+        note: "⚠️ OTP included in response because NODE_ENV=development. Remove in production!",
+      };
+    }
+
+    return { message: "OTP sent successfully" };
+  }
+
   async register(registerDto: RegisterDto) {
     console.log("[AuthService] Registering user:", registerDto.loginId);
+
+    // Verify OTP
+    if (!registerDto.otp) {
+      throw new UnauthorizedException("OTP is required");
+    }
+
+    const otpRecord = await (this.prisma as any).otpVerification.findFirst({
+      where: { email: registerDto.email, otp: registerDto.otp },
+    });
+
+    if (!otpRecord) {
+      throw new UnauthorizedException("Invalid OTP");
+    }
+
+    if (otpRecord.expiresAt < new Date()) {
+      throw new UnauthorizedException("OTP has expired");
+    }
 
     // Check for existing loginId
     const existingLoginId = await this.prisma.user.findUnique({
@@ -50,12 +97,13 @@ export class AuthService {
       },
     });
 
-    // Send welcome email (non-blocking)
-    this.mailService
-      .sendWelcomeEmail(user.email, user.name || "User")
-      .catch((error) => {
-        console.error("[AuthService] Failed to send welcome email:", error);
-      });
+    // Cleanup OTP
+    await (this.prisma as any).otpVerification.delete({
+      where: { id: otpRecord.id },
+    });
+
+    // Send welcome email (non-blocking) - Optional since we just verified email
+    // this.mailService.sendWelcomeEmail(...)
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...result } = user;
