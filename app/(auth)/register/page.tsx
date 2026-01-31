@@ -21,10 +21,19 @@ import { apiRequest } from "@/lib/api";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+  loginId: z
+    .string()
+    .min(6, { message: "Login ID must be at least 6 characters." })
+    .max(12, { message: "Login ID must be at most 12 characters." }),
   email: z.string().email({ message: "Invalid email address." }),
   password: z
     .string()
-    .min(6, { message: "Password must be at least 6 characters." }),
+    .min(9, { message: "Password must be more than 8 characters." })
+    .regex(/[a-z]/, { message: "Password must contain a lowercase letter." })
+    .regex(/[A-Z]/, { message: "Password must contain an uppercase letter." })
+    .regex(/[^a-zA-Z0-9]/, {
+      message: "Password must contain a special character.",
+    }),
 });
 
 export default function RegisterPage() {
@@ -36,6 +45,7 @@ export default function RegisterPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
+      loginId: "",
       email: "",
       password: "",
     },
@@ -46,7 +56,7 @@ export default function RegisterPage() {
     setError("");
 
     try {
-      console.log("[Register] Attempting registration with:", values.email);
+      console.log("[Register] Attempting registration with:", values.loginId);
       const response = await apiRequest("/auth/register", {
         method: "POST",
         body: values,
@@ -101,6 +111,23 @@ export default function RegisterPage() {
             {form.formState.errors.name && (
               <p className="text-xs text-destructive">
                 {form.formState.errors.name.message}
+              </p>
+            )}
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="loginId">Login ID</Label>
+            <Input
+              id="loginId"
+              placeholder="unique_id"
+              disabled={isLoading}
+              className={
+                form.formState.errors.loginId ? "border-destructive" : ""
+              }
+              {...form.register("loginId")}
+            />
+            {form.formState.errors.loginId && (
+              <p className="text-xs text-destructive">
+                {form.formState.errors.loginId.message}
               </p>
             )}
           </div>

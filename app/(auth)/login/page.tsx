@@ -20,7 +20,7 @@ import { Label } from "@/components/ui/label";
 import { apiRequest } from "@/lib/api";
 
 const formSchema = z.object({
-  email: z.string().email({ message: "Invalid email address." }),
+  loginId: z.string().min(1, { message: "Login ID is required." }),
   password: z.string().min(1, { message: "Password is required." }),
 });
 
@@ -32,7 +32,7 @@ export default function LoginPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
+      loginId: "",
       password: "",
     },
   });
@@ -44,7 +44,7 @@ export default function LoginPage() {
     try {
       const data = await apiRequest("/auth/login", {
         method: "POST",
-        body: { email: values.email, password: values.password },
+        body: { loginId: values.loginId, password: values.password },
       });
 
       if (data && data.access_token) {
@@ -55,7 +55,8 @@ export default function LoginPage() {
       }
     } catch (e: any) {
       console.error(e);
-      setError("Login failed. Please check your credentials.");
+      // Display the specific error message from backend if available, otherwise default
+      setError(e.message || "Invalid Login Id or Password");
     } finally {
       setIsLoading(false);
     }
@@ -79,20 +80,19 @@ export default function LoginPage() {
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <CardContent className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="loginId">Login ID</Label>
             <Input
-              id="email"
-              type="email"
-              placeholder="name@company.com"
+              id="loginId"
+              placeholder="unique_id"
               disabled={isLoading}
               className={
-                form.formState.errors.email ? "border-destructive" : ""
+                form.formState.errors.loginId ? "border-destructive" : ""
               }
-              {...form.register("email")}
+              {...form.register("loginId")}
             />
-            {form.formState.errors.email && (
+            {form.formState.errors.loginId && (
               <p className="text-xs text-destructive">
-                {form.formState.errors.email.message}
+                {form.formState.errors.loginId.message}
               </p>
             )}
           </div>
@@ -126,7 +126,10 @@ export default function LoginPage() {
             Sign In
           </Button>
           <div className="text-center text-xs text-muted-foreground">
-            <a href="#" className="hover:text-primary transition-colors">
+            <a
+              href="/forgot-password"
+              className="hover:text-primary transition-colors"
+            >
               Forgot your password?
             </a>
           </div>

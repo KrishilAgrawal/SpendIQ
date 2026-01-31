@@ -18,13 +18,21 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto) {
-    console.log("[AuthService] Registering user:", registerDto.email);
-    const existingUser = await this.prisma.user.findUnique({
+    console.log("[AuthService] Registering user:", registerDto.loginId);
+
+    // Check for existing loginId
+    const existingLoginId = await this.prisma.user.findUnique({
+      where: { loginId: registerDto.loginId },
+    });
+    if (existingLoginId) {
+      throw new ConflictException("Login ID already in use");
+    }
+
+    // Check for existing email (since schema requires uniqueness)
+    const existingEmail = await this.prisma.user.findUnique({
       where: { email: registerDto.email },
     });
-    console.log("[AuthService] Existing user check:", existingUser);
-
-    if (existingUser) {
+    if (existingEmail) {
       throw new ConflictException("Email already in use");
     }
 
@@ -32,10 +40,11 @@ export class AuthService {
 
     const user = await this.prisma.user.create({
       data: {
+        loginId: registerDto.loginId,
         email: registerDto.email,
         password: hashedPassword,
         name: registerDto.name,
-        role: Role.ADMIN, // Default to ADMIN for MVP
+        role: Role.ADMIN, // Defaulting to ADMIN for MVP functionality
       },
     });
 
@@ -46,11 +55,16 @@ export class AuthService {
 
   async login(loginDto: LoginDto) {
     const user = await this.prisma.user.findUnique({
-      where: { email: loginDto.email },
+      where: { loginId: loginDto.loginId },
     });
 
+    // Specific error message as requested
+    const invalidCredsError = new UnauthorizedException(
+      "Invalid Login Id or Password",
+    );
+
     if (!user) {
-      throw new UnauthorizedException("Invalid credentials");
+      throw invalidCredsError;
     }
 
     const isPasswordValid = await bcrypt.compare(
@@ -59,7 +73,7 @@ export class AuthService {
     );
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException("Invalid credentials");
+      throw invalidCredsError;
     }
 
     const payload = { sub: user.id, email: user.email, role: user.role };
@@ -68,6 +82,7 @@ export class AuthService {
       access_token: this.jwtService.sign(payload),
       user: {
         id: user.id,
+        loginId: user.loginId,
         email: user.email,
         name: user.name,
         role: user.role,
