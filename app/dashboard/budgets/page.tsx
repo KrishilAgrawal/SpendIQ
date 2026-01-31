@@ -15,51 +15,31 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Search, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
-// Mock Data
-const budgets = [
-  {
-    id: 1,
-    name: "Q1 Marketing",
-    department: "Marketing",
-    allocated: 50000,
-    spent: 24000,
-    status: "Active",
-  },
-  {
-    id: 2,
-    name: "IT Infrastructure Upgrade",
-    department: "IT",
-    allocated: 120000,
-    spent: 115000,
-    status: "Warning",
-  },
-  {
-    id: 3,
-    name: "Annual Team Retreat",
-    department: "HR",
-    allocated: 15000,
-    spent: 0,
-    status: "Pending",
-  },
-  {
-    id: 4,
-    name: "Office Supplies 2026",
-    department: "Admin",
-    allocated: 12000,
-    spent: 3400,
-    status: "Active",
-  },
-  {
-    id: 5,
-    name: "New Product R&D",
-    department: "R&D",
-    allocated: 250000,
-    spent: 180000,
-    status: "Active",
-  },
-];
+import { useEffect, useState } from "react";
+import { apiRequest } from "@/lib/api";
 
 export default function BudgetListPage() {
+  const [budgets, setBudgets] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchBudgets();
+  }, []);
+
+  const fetchBudgets = async () => {
+    try {
+      const data = await apiRequest("/budgets");
+      if (Array.isArray(data)) {
+        setBudgets(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch budgets", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <div>Loading budgets...</div>;
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -106,7 +86,12 @@ export default function BudgetListPage() {
             </TableHeader>
             <TableBody>
               {budgets.map((budget) => {
-                const utilization = (budget.spent / budget.allocated) * 100;
+                // Ensure number types
+                const spent = Number(budget.spent) || 0;
+                const allocated = Number(budget.allocated) || 0;
+                const utilization =
+                  allocated > 0 ? (spent / allocated) * 100 : 0;
+
                 return (
                   <TableRow key={budget.id}>
                     <TableCell className="font-medium">

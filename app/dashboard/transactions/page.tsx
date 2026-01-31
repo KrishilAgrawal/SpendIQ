@@ -29,57 +29,24 @@ import {
   Calendar as CalendarIcon,
 } from "lucide-react";
 
-// Mock Data
-const transactions = [
-  {
-    id: "INV-2024-001",
-    date: "2026-01-15",
-    recipient: "AWS Web Services",
-    description: "Monthly Cloud Hosting",
-    amount: 1250.0,
-    status: "Paid",
-    category: "IT Infrastructure",
-  },
-  {
-    id: "INV-2024-002",
-    date: "2026-01-18",
-    recipient: "Staples",
-    description: "Office Stationery",
-    amount: 342.5,
-    status: "Pending",
-    category: "Office Supplies",
-  },
-  {
-    id: "INV-2024-003",
-    date: "2026-01-20",
-    recipient: "Upwork",
-    description: "Freelance Design Work",
-    amount: 850.0,
-    status: "Paid",
-    category: "Marketing",
-  },
-  {
-    id: "INV-2024-004",
-    date: "2026-01-22",
-    recipient: "Delta Airlines",
-    description: "Sales Team flight to NY",
-    amount: 1420.0,
-    status: "Processing",
-    category: "Travel",
-  },
-  {
-    id: "INV-2024-005",
-    date: "2026-01-25",
-    recipient: "TechData Corp",
-    description: "New Monitors for Dev Team",
-    amount: 4500.0,
-    status: "Pending",
-    category: "IT",
-  },
-];
+import { apiRequest } from "@/lib/api";
+import { useEffect } from "react";
 
 export default function TransactionsPage() {
+  const [transactions, setTransactions] = useState<any[]>([]);
   const [filter, setFilter] = useState("");
+
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      try {
+        const data = await apiRequest("/invoices");
+        setTransactions(data || []);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchInvoices();
+  }, []);
 
   const filteredTransactions = transactions.filter(
     (t) =>

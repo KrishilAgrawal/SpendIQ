@@ -3,61 +3,33 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import Image from "next/image";
 
-// Helper to render mock logos if image not available
-const MockLogo = ({ color, icon }: { color: string; icon: string }) => (
-  <div
-    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm`}
-    style={{ backgroundColor: color }}
-  >
-    {icon}
-  </div>
-);
+interface Transaction {
+  id: string;
+  date: string;
+  totalAmount: number; // Changed from amount to match Prisma response usually
+  partner: { name: string };
+  type: string;
+  status: string;
+}
 
-const transactions = [
-  {
-    id: 1,
-    date: "25 Jul 12:30",
-    amount: -10,
-    name: "YouTube",
-    method: "VISA **3254",
-    category: "Subscription",
-    logo: (
-      <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white text-xs">
-        ▶
-      </div>
-    ),
-  },
-  {
-    id: 2,
-    date: "26 Jul 15:00",
-    amount: -150,
-    name: "Reserved",
-    method: "Mastercard **2154",
-    category: "Shopping",
-    logo: (
-      <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center font-serif text-[10px]">
-        RE
-      </div>
-    ),
-  },
-  {
-    id: 3,
-    date: "27 Jul 9:00",
-    amount: -80,
-    name: "Yaposhka",
-    method: "Mastercard **2154",
-    category: "Cafe & Restaurants",
-    logo: (
-      <div className="w-8 h-8 rounded-full bg-pink-100 text-pink-500 flex items-center justify-center text-xs">
-        ☺
-      </div>
-    ),
-  },
-];
+interface RecentTransactionsListProps {
+  transactions?: Transaction[];
+}
 
-export function RecentTransactionsList() {
+export function RecentTransactionsList({
+  transactions = [],
+}: RecentTransactionsListProps) {
+  // Helper to format date
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString("en-US", {
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   return (
     <Card className="rounded-[1.5rem] border-none shadow-sm overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between pb-6">
@@ -90,23 +62,41 @@ export function RecentTransactionsList() {
                 className="grid grid-cols-12 gap-4 px-2 py-5 items-center border-b border-border last:border-0 hover:bg-slate-50/50 transition-colors"
               >
                 <div className="col-span-2 text-sm text-foreground font-medium">
-                  {t.date}
+                  {formatDate(t.date)}
                 </div>
                 <div className="col-span-1 text-sm font-bold text-foreground text-right">
-                  {t.amount < 0 ? `- $${Math.abs(t.amount)}` : `+ $${t.amount}`}
+                  {/* Assuming IN_INVOICE is negative expense, OUT_INVOICE is positive income for now OR based on type */}
+                  {t.type === "IN_INVOICE" ? (
+                    <span className="text-red-500">
+                      - ${Number(t.totalAmount).toLocaleString()}
+                    </span>
+                  ) : (
+                    <span className="text-green-500">
+                      + ${Number(t.totalAmount).toLocaleString()}
+                    </span>
+                  )}
                 </div>
                 <div className="col-span-3 flex items-center gap-3 pl-8">
-                  {t.logo}
-                  <span className="font-semibold text-sm">{t.name}</span>
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
+                    {t.partner?.name?.charAt(0) || "?"}
+                  </div>
+                  <span className="font-semibold text-sm truncate">
+                    {t.partner?.name || "Unknown"}
+                  </span>
                 </div>
                 <div className="col-span-3 text-sm text-foreground font-medium">
-                  {t.method}
+                  {t.status}
                 </div>
                 <div className="col-span-3 text-sm text-foreground font-medium">
-                  {t.category}
+                  {t.type}
                 </div>
               </div>
             ))}
+            {transactions.length === 0 && (
+              <div className="p-4 text-center text-muted-foreground">
+                No recent transactions
+              </div>
+            )}
           </div>
         </div>
       </CardContent>

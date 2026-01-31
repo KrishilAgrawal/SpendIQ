@@ -1,15 +1,50 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { KPICard } from "@/components/dashboard/kpi-card";
-import { BudgetVsActualChart } from "@/components/charts/budget-vs-actual";
 import { Button } from "@/components/ui/button";
 import { Calendar, Plus } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MoneyFlowChart } from "@/components/charts/money-flow-chart";
 import { BudgetDonutChart } from "@/components/charts/budget-donut-chart";
 import { RecentTransactionsList } from "@/components/dashboard/recent-transactions";
+import { apiRequest } from "@/lib/api";
 
 export default function DashboardPage() {
+  const [metrics, setMetrics] = useState<any>({
+    balance: 0,
+    income: 0,
+    expense: 0,
+    savings: 0,
+    savingsRate: 0,
+  });
+  const [dataFlow, setDataFlow] = useState<any[]>([]);
+  const [dataBudget, setDataBudget] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function fetchDashboardData() {
+      try {
+        const [metricsData, flowData, budgetData, recentTx] = await Promise.all(
+          [
+            apiRequest("/dashboard/metrics"),
+            apiRequest("/dashboard/money-flow"),
+            apiRequest("/dashboard/budget-usage"),
+            apiRequest("/dashboard/recent-transactions"),
+          ],
+        );
+
+        if (metricsData) setMetrics(metricsData);
+        if (flowData) setDataFlow(flowData);
+        if (budgetData) setDataBudget(budgetData);
+        if (recentTx) setTransactions(recentTx);
+      } catch (error) {
+        console.error("Failed to load dashboard data", error);
+      }
+    }
+
+    fetchDashboardData();
+  }, []);
+
   return (
     <div className="space-y-8 p-4 lg:p-8">
       {/* Welcome Section */}
@@ -19,7 +54,7 @@ export default function DashboardPage() {
             Welcome back, Admin!
           </h1>
           <p className="text-muted-foreground mt-1">
-            It is the best time to manage your finances.
+            Overview of your financial performance.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -30,7 +65,7 @@ export default function DashboardPage() {
             <Calendar className="mr-2 h-4 w-4" /> This Month
           </Button>
           <Button className="rounded-full px-6 h-12 shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-shadow">
-            <Plus className="mr-2 h-4 w-4" /> Add New Widget
+            <Plus className="mr-2 h-4 w-4" /> Add Widget
           </Button>
         </div>
       </div>
@@ -39,33 +74,38 @@ export default function DashboardPage() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <KPICard
           title="Total Balance"
-          value="$15,700.00"
-          trend="12.1%"
+          value={`$${metrics.balance.toLocaleString()}`}
+          trend={`${metrics.savingsRate}%`} // Using savings rate as trend for now
+          trendUp={metrics.balance >= 0}
+        />
+        <KPICard
+          title="Income"
+          value={`$${metrics.income.toLocaleString()}`}
+          trend="0%"
           trendUp={true}
         />
-        <KPICard title="Income" value="$8,500.00" trend="6.3%" trendUp={true} />
         <KPICard
           title="Expense"
-          value="$6,222.00"
-          trend="2.4%"
+          value={`$${metrics.expense.toLocaleString()}`}
+          trend="0%"
           trendUp={false}
         />
         <KPICard
           title="Total Savings"
-          value="$32,913.00"
-          trend="12.1%"
-          trendUp={true}
+          value={`$${metrics.savings.toLocaleString()}`}
+          trend={`${metrics.savingsRate}%`}
+          trendUp={metrics.savings >= 0}
         />
       </div>
 
       {/* Charts Section */}
       <div className="grid gap-6 md:grid-cols-7">
-        <MoneyFlowChart />
-        <BudgetDonutChart />
+        <MoneyFlowChart data={dataFlow} />
+        <BudgetDonutChart data={dataBudget} />
       </div>
 
       {/* Recent Transactions List */}
-      <RecentTransactionsList />
+      <RecentTransactionsList transactions={transactions} />
     </div>
   );
 }

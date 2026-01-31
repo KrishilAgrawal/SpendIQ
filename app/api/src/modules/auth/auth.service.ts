@@ -33,10 +33,11 @@ export class AuthService {
         email: registerDto.email,
         password: hashedPassword,
         name: registerDto.name,
-        role: Role.USER, // Default role
+        role: Role.ADMIN, // Default to ADMIN for MVP
       },
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...result } = user;
     return result;
   }

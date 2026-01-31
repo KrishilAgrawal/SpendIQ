@@ -13,17 +13,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
 
-const data = [
-  { name: "Jan", income: 9500, expense: 8000 },
-  { name: "Feb", income: 10500, expense: 12000 },
-  { name: "Mar", income: 10500, expense: 9500 },
-  { name: "Apr", income: 13500, expense: 12000 },
-  { name: "May", income: 12000, expense: 11500 },
-  { name: "Jun", income: 7000, expense: 6000 },
-  { name: "Jul", income: 8000, expense: 6500 },
-];
+interface ChartData {
+  name: string;
+  income: number;
+  expense: number;
+}
 
-export function MoneyFlowChart() {
+interface MoneyFlowChartProps {
+  data?: ChartData[];
+}
+
+export function MoneyFlowChart({ data = [] }: MoneyFlowChartProps) {
   return (
     <Card className="rounded-[1.5rem] border-none shadow-sm col-span-4">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -79,7 +79,9 @@ export function MoneyFlowChart() {
                 axisLine={false}
                 tickLine={false}
                 tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-                tickFormatter={(value) => `$${value.toLocaleString()}`}
+                formatter={(value: number) =>
+                  [`$${value.toLocaleString()}`, "Amount"] as any
+                }
               />
               <Tooltip
                 cursor={{ fill: "transparent" }}
@@ -92,7 +94,7 @@ export function MoneyFlowChart() {
                 itemStyle={{ fontSize: "13px", fontWeight: 600 }}
                 formatter={(value: number) => [
                   `$${value.toLocaleString()}`,
-                  "",
+                  "Amount",
                 ]}
               />
               <Bar

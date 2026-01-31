@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ChevronRight,
   ChevronDown,
@@ -18,114 +18,16 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-// Note: I haven't implemented DropdownMenu primitives yet!
-// I should use simple buttons or implement dropdown primitives soon.
-// For now, I'll skip dropdown complex logic or use a simple overflow button implementation.
+import { apiRequest } from "@/lib/api";
 
 interface CostCenterNode {
   id: string;
   name: string;
   code: string;
-  type: "view" | "account"; // View = Folder/Parent, Account = Leaf
+  type: "view" | "account";
   children?: CostCenterNode[];
   balance: number;
 }
-
-const initialData: CostCenterNode[] = [
-  {
-    id: "1",
-    name: "Operational Expenses",
-    code: "OPEX",
-    type: "view",
-    balance: 450000,
-    children: [
-      {
-        id: "1-1",
-        name: "IT Department",
-        code: "IT",
-        type: "view",
-        balance: 150000,
-        children: [
-          {
-            id: "1-1-1",
-            name: "Hardware",
-            code: "IT-HW",
-            type: "account",
-            balance: 80000,
-          },
-          {
-            id: "1-1-2",
-            name: "Software Licenses",
-            code: "IT-SW",
-            type: "account",
-            balance: 50000,
-          },
-          {
-            id: "1-1-3",
-            name: "Cloud Services",
-            code: "IT-CLOUD",
-            type: "account",
-            balance: 20000,
-          },
-        ],
-      },
-      {
-        id: "1-2",
-        name: "Marketing",
-        code: "MKT",
-        type: "view",
-        balance: 200000,
-        children: [
-          {
-            id: "1-2-1",
-            name: "Online Ads",
-            code: "MKT-ADS",
-            type: "account",
-            balance: 120000,
-          },
-          {
-            id: "1-2-2",
-            name: "Events",
-            code: "MKT-EVT",
-            type: "account",
-            balance: 80000,
-          },
-        ],
-      },
-      {
-        id: "1-3",
-        name: "HR & Admin",
-        code: "HR",
-        type: "account",
-        balance: 100000,
-      },
-    ],
-  },
-  {
-    id: "2",
-    name: "Capital Expenses",
-    code: "CAPEX",
-    type: "view",
-    balance: 1200000,
-    children: [
-      {
-        id: "2-1",
-        name: "New HQ Construction",
-        code: "HQ-BUILD",
-        type: "account",
-        balance: 1200000,
-      },
-    ],
-  },
-];
 
 function TreeNode({
   node,
@@ -207,6 +109,33 @@ function TreeNode({
 }
 
 export default function AnalyticsPage() {
+  const [nodes, setNodes] = useState<CostCenterNode[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const accounts = await apiRequest("/analytical-accounts");
+        if (Array.isArray(accounts)) {
+          // Transform flat list to tree if parentId exists
+          // For now, we map them assuming flat list or handle simple hierarchy if returned
+          // This mapper handles flat list for now to ensure display
+          const mapped = accounts.map((acc: any) => ({
+            id: acc.id,
+            name: acc.name,
+            code: acc.code,
+            type: acc.type === "VIEW" ? "view" : "account",
+            balance: 0,
+            children: [], // If backend returns hierarchy, this logic needs improvement
+          }));
+          setNodes(mapped);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchData();
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -232,9 +161,14 @@ export default function AnalyticsPage() {
         </CardHeader>
         <CardContent>
           <div className="border rounded-lg p-4 bg-card">
-            {initialData.map((node) => (
+            {nodes.map((node) => (
               <TreeNode key={node.id} node={node} />
             ))}
+            {nodes.length === 0 && (
+              <div className="text-center p-4 text-muted-foreground">
+                No analytical accounts found.
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

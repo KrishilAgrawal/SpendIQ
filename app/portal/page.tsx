@@ -3,12 +3,11 @@
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -17,63 +16,59 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Download, CreditCard, Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { DollarSign, Download, CreditCard } from "lucide-react";
 
-// Mock Data for Portal User
-const invoices = [
-  {
-    id: "INV-2024-055",
-    date: "2026-01-20",
-    amount: 2400.0,
-    status: "Unpaid",
-    due: "2026-02-01",
-  },
-  {
-    id: "INV-2024-042",
-    date: "2025-12-15",
-    amount: 1250.0,
-    status: "Paid",
-    due: "2025-12-30",
-  },
-  {
-    id: "INV-2024-033",
-    date: "2025-11-20",
-    amount: 1800.0,
-    status: "Paid",
-    due: "2025-12-05",
-  },
-];
+import { useEffect, useState } from "react";
+import { apiRequest } from "@/lib/api";
 
-export default function PortalPage() {
-  const outstanding = invoices.reduce(
-    (acc, inv) => (inv.status === "Unpaid" ? acc + inv.amount : acc),
-    0,
-  );
+export default function PortalDashboard() {
+  const [myInvoices, setMyInvoices] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      try {
+        const data = await apiRequest("/portal/invoices");
+        if (Array.isArray(data)) setMyInvoices(data);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchInvoices();
+  }, []);
 
   return (
-    <div className="space-y-8">
-      {/* Welcome & Quick Action */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-primary text-primary-foreground p-8 rounded-xl shadow-lg">
+    <div className="min-h-screen bg-muted/40 p-6 space-y-8">
+      {/* Portal Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Welcome, Client Inc.</h1>
-          <p className="opacity-90">
-            You have{" "}
-            <span className="font-bold">${outstanding.toLocaleString()}</span>{" "}
-            in outstanding invoices.
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight">Customer Portal</h1>
+          <p className="text-muted-foreground">Welcome back, Acme Corp</p>
         </div>
-        <Button variant="secondary" size="lg" className="shadow-sm">
-          <CreditCard className="mr-2 h-5 w-5" /> Pay Now
-        </Button>
+        <Button variant="outline">Log Out</Button>
       </div>
 
-      {/* Invoice History */}
+      {/* Overview Cards */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Outstanding Balance
+            </CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">$1,250.00</div>
+            <p className="text-xs text-muted-foreground">1 Invoice Due</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Invoice List */}
       <Card>
         <CardHeader>
-          <CardTitle>Invoice History</CardTitle>
-          <CardDescription>
-            View and download detailed statements.
-          </CardDescription>
+          <CardTitle>My Invoices</CardTitle>
+          <CardDescription>View and pay your invoices.</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -82,38 +77,38 @@ export default function PortalPage() {
                 <TableHead>Invoice #</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Due Date</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-                <TableHead className="text-right">Status</TableHead>
-                <TableHead className="text-right">Action</TableHead>
+                <TableHead className="text-right">Total</TableHead>
+                <TableHead className="text-center">Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {invoices.map((inv) => (
+              {myInvoices.map((inv) => (
                 <TableRow key={inv.id}>
                   <TableCell className="font-medium">{inv.id}</TableCell>
                   <TableCell>{inv.date}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-3 w-3 text-muted-foreground" />
-                      {inv.due}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right font-semibold">
-                    ${inv.amount.toLocaleString()}
-                  </TableCell>
+                  <TableCell>{inv.dueDate}</TableCell>
                   <TableCell className="text-right">
+                    ${inv.total.toLocaleString()}
+                  </TableCell>
+                  <TableCell className="text-center">
                     <Badge
                       variant={
-                        inv.status === "Paid" ? "success" : "destructive"
+                        inv.status === "Paid" ? "default" : "destructive"
                       }
                     >
                       {inv.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">
-                      <Download className="h-4 w-4" /> PDF
+                  <TableCell className="text-right flex justify-end gap-2">
+                    <Button variant="ghost" size="icon">
+                      <Download className="h-4 w-4" />
                     </Button>
+                    {inv.status !== "Paid" && (
+                      <Button size="sm">
+                        <CreditCard className="mr-2 h-4 w-4" /> Pay Now
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

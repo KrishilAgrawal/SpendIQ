@@ -1,20 +1,20 @@
 "use client";
 
-import { PieChart, Pie, Cell, ResponsiveContainer, Label } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { ArrowUpRight } from "lucide-react";
 
-const data = [
-  { name: "Cafe & Restaurants", value: 400, color: "#8B5CF6" }, // Primary
-  { name: "Entertainment", value: 300, color: "#C4B5FD" }, // Light Purple
-  { name: "Investments", value: 200, color: "#F3F4F6" }, // Very light gray
-  { name: "Food & Groceries", value: 500, color: "#4B5563" }, // Dark Gray
-  { name: "Health & Beauty", value: 250, color: "#9CA3AF" }, // Gray
-  { name: "Traveling", value: 350, color: "#D1D5DB" }, // Light Gray
-];
+interface ChartData {
+  name: string;
+  value: number;
+  color: string;
+}
 
-export function BudgetDonutChart() {
+interface BudgetDonutChartProps {
+  data?: ChartData[];
+}
+
+export function BudgetDonutChart({ data = [] }: BudgetDonutChartProps) {
   return (
     <Card className="rounded-[1.5rem] border-none shadow-sm col-span-3">
       <CardHeader className="flex flex-row items-start justify-between pb-0">
@@ -41,13 +41,7 @@ export function BudgetDonutChart() {
 
         {/* Donut Chart Right Side */}
         <div className="relative w-1/2 h-[220px]">
-          {/* Floating Badge Mockup */}
-          <div className="absolute top-2 left-0 bg-white/90 backdrop-blur shadow-sm p-2 rounded-xl z-10 border border-slate-100">
-            <div className="text-[10px] text-muted-foreground font-bold">
-              7%
-            </div>
-            <div className="text-xs font-bold text-foreground">$400</div>
-          </div>
+          {/* Floating Badge Removed for Dynamic Data */}
 
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -71,10 +65,7 @@ export function BudgetDonutChart() {
           {/* Center Text */}
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
             <span className="text-xs text-muted-foreground font-medium">
-              Total for month
-            </span>
-            <span className="text-2xl font-bold text-foreground mt-1">
-              $5,950<span className="text-muted-foreground text-lg">.00</span>
+              Top Budgets
             </span>
           </div>
         </div>
