@@ -17,10 +17,15 @@ import { Input } from "@/components/ui/input";
 
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { NewBudgetDialog } from "@/components/budgets/new-budget-dialog";
+import { EditBudgetDialog } from "@/components/budgets/edit-budget-dialog";
+import { exportAllBudgetsToCSV } from "@/lib/export-utils";
 
 export default function BudgetListPage() {
   const [budgets, setBudgets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showNewBudgetDialog, setShowNewBudgetDialog] = useState(false);
+  const [editingBudgetId, setEditingBudgetId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchBudgets();
@@ -49,9 +54,22 @@ export default function BudgetListPage() {
             Manage and track departmental allocations.
           </p>
         </div>
-        <Button className="w-full sm:w-auto">
-          <Plus className="mr-2 h-4 w-4" /> New Budget
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            className="w-full sm:w-auto"
+            onClick={() => exportAllBudgetsToCSV(budgets)}
+            disabled={budgets.length === 0}
+          >
+            <Filter className="mr-2 h-4 w-4" /> Export All
+          </Button>
+          <Button
+            className="w-full sm:w-auto"
+            onClick={() => setShowNewBudgetDialog(true)}
+          >
+            <Plus className="mr-2 h-4 w-4" /> New Budget
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -102,12 +120,12 @@ export default function BudgetListPage() {
                         {budget.name}
                       </Link>
                     </TableCell>
-                    <TableCell>{budget.department}</TableCell>
+                    <TableCell>{budget.department || "General"}</TableCell>
                     <TableCell className="text-right">
-                      ${budget.allocated.toLocaleString()}
+                      ${allocated.toLocaleString()}
                     </TableCell>
                     <TableCell className="text-right">
-                      ${budget.spent.toLocaleString()}
+                      ${spent.toLocaleString()}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
@@ -132,7 +150,11 @@ export default function BudgetListPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setEditingBudgetId(budget.id)}
+                      >
                         Edit
                       </Button>
                     </TableCell>
@@ -143,6 +165,21 @@ export default function BudgetListPage() {
           </Table>
         </CardContent>
       </Card>
+
+      <NewBudgetDialog
+        open={showNewBudgetDialog}
+        onOpenChange={setShowNewBudgetDialog}
+        onSuccess={fetchBudgets}
+      />
+
+      {editingBudgetId && (
+        <EditBudgetDialog
+          open={!!editingBudgetId}
+          onOpenChange={(open) => !open && setEditingBudgetId(null)}
+          budgetId={editingBudgetId}
+          onSuccess={fetchBudgets}
+        />
+      )}
     </div>
   );
 }

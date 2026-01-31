@@ -8,8 +8,10 @@ import { MoneyFlowChart } from "@/components/charts/money-flow-chart";
 import { BudgetDonutChart } from "@/components/charts/budget-donut-chart";
 import { RecentTransactionsList } from "@/components/dashboard/recent-transactions";
 import { apiRequest } from "@/lib/api";
+import { AddWidgetDialog } from "@/components/dashboard/add-widget-dialog";
 
 export default function DashboardPage() {
+  const [showAddWidgetDialog, setShowAddWidgetDialog] = useState(false);
   const [metrics, setMetrics] = useState<any>({
     balance: 0,
     income: 0,
@@ -64,7 +66,10 @@ export default function DashboardPage() {
           >
             <Calendar className="mr-2 h-4 w-4" /> This Month
           </Button>
-          <Button className="rounded-full px-6 h-12 shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-shadow">
+          <Button
+            className="rounded-full px-6 h-12 shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-shadow"
+            onClick={() => setShowAddWidgetDialog(true)}
+          >
             <Plus className="mr-2 h-4 w-4" /> Add Widget
           </Button>
         </div>
@@ -106,6 +111,15 @@ export default function DashboardPage() {
 
       {/* Recent Transactions List */}
       <RecentTransactionsList transactions={transactions} />
+
+      <AddWidgetDialog
+        open={showAddWidgetDialog}
+        onOpenChange={setShowAddWidgetDialog}
+        onAddWidget={(widgetId) => {
+          console.log("Adding widget:", widgetId);
+          // TODO: Implement widget addition logic
+        }}
+      />
     </div>
   );
 }

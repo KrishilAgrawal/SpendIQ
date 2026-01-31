@@ -17,11 +17,11 @@ export declare class BudgetsController {
     } & {
         id: string;
         name: string;
-        createdAt: Date;
-        updatedAt: Date;
         fiscalYear: number;
         status: import(".prisma/client").$Enums.BudgetStatus;
         version: number;
+        createdAt: Date;
+        updatedAt: Date;
         departmentId: string | null;
         previousVersionId: string | null;
         createdBy: string;
@@ -29,11 +29,11 @@ export declare class BudgetsController {
     revise(req: any, id: string, dto: CreateBudgetDto): Promise<{
         id: string;
         name: string;
-        createdAt: Date;
-        updatedAt: Date;
         fiscalYear: number;
         status: import(".prisma/client").$Enums.BudgetStatus;
         version: number;
+        createdAt: Date;
+        updatedAt: Date;
         departmentId: string | null;
         previousVersionId: string | null;
         createdBy: string;
@@ -41,16 +41,62 @@ export declare class BudgetsController {
     approve(id: string): Promise<{
         id: string;
         name: string;
-        createdAt: Date;
-        updatedAt: Date;
         fiscalYear: number;
         status: import(".prisma/client").$Enums.BudgetStatus;
         version: number;
+        createdAt: Date;
+        updatedAt: Date;
         departmentId: string | null;
         previousVersionId: string | null;
         createdBy: string;
     }>;
-    findAll(status?: BudgetStatus, departmentId?: string): Promise<({
+    update(id: string, dto: CreateBudgetDto): Promise<{
+        lines: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            description: string | null;
+            plannedAmount: import("@prisma/client/runtime/library").Decimal;
+            productId: string | null;
+            budgetId: string;
+        }[];
+    } & {
+        id: string;
+        name: string;
+        fiscalYear: number;
+        status: import(".prisma/client").$Enums.BudgetStatus;
+        version: number;
+        createdAt: Date;
+        updatedAt: Date;
+        departmentId: string | null;
+        previousVersionId: string | null;
+        createdBy: string;
+    }>;
+    findAll(status?: BudgetStatus, departmentId?: string): Promise<{
+        allocated: number;
+        spent: number;
+        department: string;
+        lines: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            description: string | null;
+            plannedAmount: import("@prisma/client/runtime/library").Decimal;
+            productId: string | null;
+            budgetId: string;
+        }[];
+        id: string;
+        name: string;
+        fiscalYear: number;
+        status: import(".prisma/client").$Enums.BudgetStatus;
+        version: number;
+        createdAt: Date;
+        updatedAt: Date;
+        departmentId: string | null;
+        previousVersionId: string | null;
+        createdBy: string;
+    }[]>;
+    findOne(id: string): Promise<{
         department: {
             id: string;
             name: string;
@@ -59,28 +105,39 @@ export declare class BudgetsController {
             code: string;
             parentId: string | null;
         };
-    } & {
-        id: string;
-        name: string;
-        createdAt: Date;
-        updatedAt: Date;
-        fiscalYear: number;
-        status: import(".prisma/client").$Enums.BudgetStatus;
-        version: number;
-        departmentId: string | null;
-        previousVersionId: string | null;
-        createdBy: string;
-    })[]>;
-    findOne(id: string): Promise<{
+        previousVersion: {
+            id: string;
+            name: string;
+            fiscalYear: number;
+            status: import(".prisma/client").$Enums.BudgetStatus;
+            version: number;
+            createdAt: Date;
+            updatedAt: Date;
+            departmentId: string | null;
+            previousVersionId: string | null;
+            createdBy: string;
+        };
+        nextVersion: {
+            id: string;
+            name: string;
+            fiscalYear: number;
+            status: import(".prisma/client").$Enums.BudgetStatus;
+            version: number;
+            createdAt: Date;
+            updatedAt: Date;
+            departmentId: string | null;
+            previousVersionId: string | null;
+            createdBy: string;
+        };
         lines: ({
             product: {
                 id: string;
                 name: string;
-                code: string | null;
-                type: import(".prisma/client").$Enums.ProductType;
                 description: string | null;
+                code: string | null;
                 price: import("@prisma/client/runtime/library").Decimal;
                 cost: import("@prisma/client/runtime/library").Decimal;
+                type: import(".prisma/client").$Enums.ProductType;
                 categoryId: string | null;
                 defaultAnalyticAccountId: string | null;
             };
@@ -93,46 +150,14 @@ export declare class BudgetsController {
             productId: string | null;
             budgetId: string;
         })[];
-        department: {
-            id: string;
-            name: string;
-            createdAt: Date;
-            updatedAt: Date;
-            code: string;
-            parentId: string | null;
-        };
-        previousVersion: {
-            id: string;
-            name: string;
-            createdAt: Date;
-            updatedAt: Date;
-            fiscalYear: number;
-            status: import(".prisma/client").$Enums.BudgetStatus;
-            version: number;
-            departmentId: string | null;
-            previousVersionId: string | null;
-            createdBy: string;
-        };
-        nextVersion: {
-            id: string;
-            name: string;
-            createdAt: Date;
-            updatedAt: Date;
-            fiscalYear: number;
-            status: import(".prisma/client").$Enums.BudgetStatus;
-            version: number;
-            departmentId: string | null;
-            previousVersionId: string | null;
-            createdBy: string;
-        };
     } & {
         id: string;
         name: string;
-        createdAt: Date;
-        updatedAt: Date;
         fiscalYear: number;
         status: import(".prisma/client").$Enums.BudgetStatus;
         version: number;
+        createdAt: Date;
+        updatedAt: Date;
         departmentId: string | null;
         previousVersionId: string | null;
         createdBy: string;

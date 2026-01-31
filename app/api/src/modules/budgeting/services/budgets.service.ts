@@ -32,15 +32,35 @@ export class BudgetsService {
   }
 
   async findAll(status?: BudgetStatus, departmentId?: string) {
-    return this.prisma.budget.findMany({
+    const budgets = await this.prisma.budget.findMany({
       where: {
         status: status ? status : undefined,
         departmentId: departmentId ? departmentId : undefined,
         // Only fetch latest versions (nextVersion is null) if we want current active budgets
         nextVersion: null,
       },
-      include: { department: true },
+      include: {
+        department: true,
+        lines: true,
+      },
       orderBy: { createdAt: "desc" },
+    });
+
+    // Transform budgets to include calculated fields
+    return budgets.map((budget) => {
+      const allocated = budget.lines.reduce(
+        (sum, line) => sum + Number(line.plannedAmount),
+        0,
+      );
+      // TODO: Calculate actual spent from transactions/journal entries
+      const spent = 0; // Placeholder - implement when transaction tracking is ready
+
+      return {
+        ...budget,
+        allocated,
+        spent,
+        department: budget.department?.name || null,
+      };
     });
   }
 
@@ -63,6 +83,42 @@ export class BudgetsService {
     return this.prisma.budget.update({
       where: { id },
       data: { status: BudgetStatus.APPROVED },
+    });
+  }
+
+  // Update an existing draft budget
+  async update(id: string, dto: CreateBudgetDto) {
+    const existingBudget = await this.findOne(id);
+
+    if (existingBudget.status !== BudgetStatus.DRAFT) {
+      throw new BadRequestException(
+        "Can only update draft budgets. Use revise endpoint for approved budgets.",
+      );
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // Delete existing lines
+      await tx.budgetLine.deleteMany({
+        where: { budgetId: id },
+      });
+
+      // Update budget with new data and lines
+      return tx.budget.update({
+        where: { id },
+        data: {
+          name: dto.name,
+          fiscalYear: dto.fiscalYear,
+          departmentId: dto.departmentId,
+          lines: {
+            create: dto.lines.map((line) => ({
+              productId: line.productId,
+              description: line.description,
+              plannedAmount: line.plannedAmount,
+            })),
+          },
+        },
+        include: { lines: true },
+      });
     });
   }
 

@@ -33,6 +33,9 @@ let BudgetsController = class BudgetsController {
     approve(id) {
         return this.budgetsService.approve(id);
     }
+    update(id, dto) {
+        return this.budgetsService.update(id, dto);
+    }
     findAll(status, departmentId) {
         return this.budgetsService.findAll(status, departmentId);
     }
@@ -68,6 +71,15 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], BudgetsController.prototype, "approve", null);
+__decorate([
+    (0, common_1.Put)(":id"),
+    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN),
+    __param(0, (0, common_1.Param)("id")),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, create_budget_dto_1.CreateBudgetDto]),
+    __metadata("design:returntype", void 0)
+], BudgetsController.prototype, "update", null);
 __decorate([
     (0, common_1.Get)(),
     __param(0, (0, common_1.Query)("status")),

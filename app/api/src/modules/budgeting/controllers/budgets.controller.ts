@@ -44,6 +44,12 @@ export class BudgetsController {
     return this.budgetsService.approve(id);
   }
 
+  @Put(":id")
+  @Roles(Role.ADMIN)
+  update(@Param("id") id: string, @Body() dto: CreateBudgetDto) {
+    return this.budgetsService.update(id, dto);
+  }
+
   @Get()
   findAll(
     @Query("status") status?: BudgetStatus,

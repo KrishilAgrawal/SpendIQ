@@ -37,14 +37,24 @@ let BudgetsService = class BudgetsService {
         });
     }
     async findAll(status, departmentId) {
-        return this.prisma.budget.findMany({
+        const budgets = await this.prisma.budget.findMany({
             where: {
                 status: status ? status : undefined,
                 departmentId: departmentId ? departmentId : undefined,
                 nextVersion: null,
             },
-            include: { department: true },
+            include: {
+                department: true,
+                lines: true,
+            },
             orderBy: { createdAt: "desc" },
+        });
+        return budgets.map((budget) => {
+            var _a;
+            const allocated = budget.lines.reduce((sum, line) => sum + Number(line.plannedAmount), 0);
+            const spent = 0;
+            return Object.assign(Object.assign({}, budget), { allocated,
+                spent, department: ((_a = budget.department) === null || _a === void 0 ? void 0 : _a.name) || null });
         });
     }
     async findOne(id) {
@@ -65,6 +75,33 @@ let BudgetsService = class BudgetsService {
         return this.prisma.budget.update({
             where: { id },
             data: { status: client_1.BudgetStatus.APPROVED },
+        });
+    }
+    async update(id, dto) {
+        const existingBudget = await this.findOne(id);
+        if (existingBudget.status !== client_1.BudgetStatus.DRAFT) {
+            throw new common_1.BadRequestException("Can only update draft budgets. Use revise endpoint for approved budgets.");
+        }
+        return this.prisma.$transaction(async (tx) => {
+            await tx.budgetLine.deleteMany({
+                where: { budgetId: id },
+            });
+            return tx.budget.update({
+                where: { id },
+                data: {
+                    name: dto.name,
+                    fiscalYear: dto.fiscalYear,
+                    departmentId: dto.departmentId,
+                    lines: {
+                        create: dto.lines.map((line) => ({
+                            productId: line.productId,
+                            description: line.description,
+                            plannedAmount: line.plannedAmount,
+                        })),
+                    },
+                },
+                include: { lines: true },
+            });
         });
     }
     async createRevision(id, userId, dto) {
